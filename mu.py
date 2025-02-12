@@ -9,9 +9,10 @@ import json
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
+VERSION = "1.0"
 
 def main(page:Page):
-    page.title = "ytm_download"
+    page.title = f"YTMDOWN - version{VERSION}"
     page.window.center()
 
     download_process = None
@@ -25,6 +26,8 @@ def main(page:Page):
                     output_path.value = config.get("OUTPUT", "")
                     cookie_from.value = config.get("COOKIE_FROM", "")
                     cookie_file.value = config.get("COOKIE_FILE", "")
+                    page.update()
+                    #print("読み込んだよ")
             except json.JSONDecodeError:
                 print("設定ファイルが壊れています。")
         else:
@@ -39,6 +42,7 @@ def main(page:Page):
         }
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=4)
+        #print("保存したよ")
 
     def on_window_close(e):
         save_config()

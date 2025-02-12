@@ -104,7 +104,7 @@ def main(page:Page):
             "--default-search", "ytsearch",
             "--add-metadata",
             "-f", "bestaudio[acodec^=opus]/best",
-            "-x", "--audio-format", "mp3", "--audio-quality", "0",
+            "-x", "--audio-format", format_dropdown.value, "--audio-quality", "0",
             "--embed-thumbnail",
             "--ppa", "EmbedThumbnail+ffmpeg_o:-c:v mjpeg -vf crop=\"'if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'\"",
             "-o", output_path.value+"/%(album)s/%(playlist_index)s - %(title)s.%(ext)s",
@@ -179,6 +179,7 @@ def main(page:Page):
     cookie_from = Dropdown(options=[dropdown.Option(key="firefox",text="Firefox"),dropdown.Option(key="file",text="cookies.txt")],label="Cookie From",on_change=cookie)
     cookie_file = TextField(label="Cookie File Path",expand=True,visible=False)
     cookie_select = TextButton(text="Select",visible=False,on_click=lambda _:sel_cookie_dialog.pick_files(allow_multiple=False,allowed_extensions=["txt"]))
+    format_dropdown = Dropdown(options=[dropdown.Option(key="mp3",text="mp3"),dropdown.Option(key="opus",text="opus"),dropdown.Option(key="m4a",text="m4a"),dropdown.Option(key="flac",text="flac")],label="Format",value="mp3")
     output_path = TextField(label="Output Path", value=os.path.normcase(os.path.expanduser("~")), expand=True)
     output_select = TextButton(text="Select", on_click=lambda e: sel_path_dialog.get_directory_path(dialog_title="保存先を選択"))
     progress_bar = ProgressBar(value=0)
@@ -191,6 +192,7 @@ def main(page:Page):
         Row([output_path, output_select]),
         cookie_from,
         Row([cookie_file, cookie_select]),
+        format_dropdown,
         title_text,
         progress_bar,
         log,

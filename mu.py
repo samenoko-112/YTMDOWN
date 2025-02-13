@@ -9,7 +9,7 @@ import json
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.0"
+VERSION = "1.1"
 
 def main(page:Page):
     page.title = f"YTMDOWN - version{VERSION}"

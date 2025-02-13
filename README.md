@@ -39,3 +39,4 @@ Python,yt-dlp,ffmpegをインストールしたのち実行してください。
 
 ## 依存関係
 このソフトウェアは実行にpython,yt-dlpとffmpegを必要とします。  
+またopusやflacなどへのアルバムアートの埋め込みにはmutagenが必要です。

@@ -26,6 +26,7 @@ def main(page:Page):
                     output_path.value = config.get("OUTPUT", "")
                     cookie_from.value = config.get("COOKIE_FROM", "")
                     cookie_file.value = config.get("COOKIE_FILE", "")
+                    format_dropdown.value = config.get("FORMAT","mp3")
                     page.update()
                     #print("読み込んだよ")
             except json.JSONDecodeError:
@@ -39,6 +40,7 @@ def main(page:Page):
             "OUTPUT": output_path.value,
             "COOKIE_FROM": cookie_from.value,
             "COOKIE_FILE": cookie_file.value,
+            "FORMAT": format_dropdown.value
         }
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=4)
@@ -64,6 +66,13 @@ def main(page:Page):
             cookie_file.visible = True
             cookie_select.visible = True
             page.update()
+        else:
+            cookie_file.visible = False
+            cookie_select.visible = False
+            page.update()
+        save_config()
+
+    def change(e):
         save_config()
 
     def sel_path(e: FilePickerResultEvent):
@@ -176,10 +185,10 @@ def main(page:Page):
 
     url_input = TextField(label="URL", expand=True, on_submit=download)
     paste_btn = IconButton(icon=Icons.PASTE, on_click=paste_url)
-    cookie_from = Dropdown(options=[dropdown.Option(key="firefox",text="Firefox"),dropdown.Option(key="file",text="cookies.txt")],label="Cookie From",on_change=cookie)
+    cookie_from = Dropdown(options=[dropdown.Option(key="none",text="None"),dropdown.Option(key="firefox",text="Firefox"),dropdown.Option(key="file",text="cookies.txt")],label="Cookie From",on_change=cookie)
     cookie_file = TextField(label="Cookie File Path",expand=True,visible=False)
     cookie_select = TextButton(text="Select",visible=False,on_click=lambda _:sel_cookie_dialog.pick_files(allow_multiple=False,allowed_extensions=["txt"]))
-    format_dropdown = Dropdown(options=[dropdown.Option(key="mp3",text="mp3"),dropdown.Option(key="opus",text="opus"),dropdown.Option(key="m4a",text="m4a"),dropdown.Option(key="flac",text="flac")],label="Format",value="mp3")
+    format_dropdown = Dropdown(options=[dropdown.Option(key="mp3",text="mp3"),dropdown.Option(key="opus",text="opus"),dropdown.Option(key="m4a",text="m4a"),dropdown.Option(key="flac",text="flac")],label="Format",value="mp3",on_change=change)
     output_path = TextField(label="Output Path", value=os.path.normcase(os.path.expanduser("~")), expand=True)
     output_select = TextButton(text="Select", on_click=lambda e: sel_path_dialog.get_directory_path(dialog_title="保存先を選択"))
     progress_bar = ProgressBar(value=0)

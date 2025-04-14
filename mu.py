@@ -111,14 +111,19 @@ def main(page:Page):
             "--newline",  # 進捗情報を1行ずつ出力
             "--progress-template", progress_template,
             "--default-search", "ytsearch",
-            "--add-metadata",
+            "--add-header", "Accept-Language:ja-JP",
+            "--add-metadata","--embed-metadata",
             "-f", "bestaudio[acodec^=opus]/best",
             "-x", "--audio-format", format_dropdown.value, "--audio-quality", "0",
-            "--embed-thumbnail",
-            "--ppa", "EmbedThumbnail+ffmpeg_o:-c:v mjpeg -vf crop=\"'if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'\"",
+            "--embed-thumbnail","--convert-thumbnails", "jpg",
+            "--ppa","ThumbnailsConvertor:-qmin 1 -q:v 1 -vf crop=\"'if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'\"",
             "-o", output_path.value+"/%(album)s/%(playlist_index)s - %(title)s.%(ext)s",
-            "--parse-metadata", "playlist_index:%(track_number)s",
-            "--parse-metadata", "release_year:%(date)s"
+            "--parse-metadata", "%(playlist_index)s/%(n_entries)s:%(track_number)s",
+            # "--parse-metadata", "%(upload_date).4s:%(meta_year)s",
+            "--parse-metadata", "%(upload_date).4s:%(meta_date)s",
+            "--parse-metadata", "%(artists.0)s:%(meta_album_artist)s",
+            # "--parse-metadata", "n_entries:%(meta_totaltracks)s",
+            "--no-warnings",
         ]
         if cookie_from.value == "firefox":
             command.extend(["--cookies-from-browser", "firefox"])

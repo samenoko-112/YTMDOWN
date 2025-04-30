@@ -101,9 +101,57 @@ def main(page:Page):
 
     def download(e):
         progress_bar.value = None
-        log.value = "開始しています..."
+        log.controls.append(Text("ダウンロードを開始します...", color=Colors.BLUE))
         dl_btn.disabled = True
         page.update()
+        
+        if set_album.value == True:
+            # まず最初のエントリのメタデータだけを取得
+            metadata_command = [
+                "yt-dlp",
+                url_input.value,
+                "--dump-json",
+                "--playlist-items", "1",
+                "--no-warnings",
+            ]
+            
+            if cookie_from.value == "firefox":
+                metadata_command.extend(["--cookies-from-browser", "firefox"])
+            elif cookie_from.value == "file":
+                metadata_command.extend(["--cookies", cookie_file.value])
+            
+            # メタデータ取得プロセスを実行
+            try:
+                metadata_process = subprocess.run(
+                    metadata_command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    check=True
+                )
+                
+                # JSONとしてパース
+                import json
+                metadata = json.loads(metadata_process.stdout)
+                
+                # artists.0の値を取得（存在する場合）
+                album_artist = None
+                if 'artist' in metadata:
+                    album_artist = metadata['artist']
+                elif 'artists' in metadata and len(metadata['artists']) > 0:
+                    album_artist = metadata['artists'][0]
+                elif 'channel' in metadata:
+                    album_artist = metadata['channel']
+                
+                log.controls.append(Text(f"アルバムアーティスト: {album_artist}", color=Colors.GREEN))
+                page.update()
+                
+            except Exception as ex:
+                log.controls.append(Text(f"メタデータ取得エラー: {str(ex)}", color=Colors.RED))
+                page.update()
+                album_artist = None
+        
+        # 通常のダウンロードコマンド
         progress_template = "Downloading: %(progress._percent_str)s | Speed: %(progress._speed_str)s | ETA: %(progress._eta_str)s | Title: %(info.title)s"
         command = [
             "yt-dlp",
@@ -112,28 +160,40 @@ def main(page:Page):
             "--progress-template", progress_template,
             "--default-search", "ytsearch",
             "--add-header", "Accept-Language:ja-JP",
-            "--add-metadata","--embed-metadata",
-            "-f", "bestaudio[acodec^=opus]/best",
+            "--add-metadata", "--embed-metadata",
+            "-f", "bestaudio/best",
             "-x", "--audio-format", format_dropdown.value, "--audio-quality", "0",
-            "--embed-thumbnail","--convert-thumbnails", "jpg",
-            "--ppa","ThumbnailsConvertor:-qmin 1 -q:v 1 -vf crop=\"'if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'\"",
+            "--embed-thumbnail", "--convert-thumbnails", "jpg",
+            "--ppa", "ThumbnailsConvertor:-qmin 1 -q:v 1 -vf crop=\"'if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'\"",
             "-o", output_path.value+"/%(album)s/%(playlist_index)s - %(title)s.%(ext)s",
             "--parse-metadata", "%(playlist_index)s/%(n_entries)s:%(track_number)s",
-            # "--parse-metadata", "%(upload_date).4s:%(meta_year)s",
             "--parse-metadata", "%(upload_date).4s:%(meta_date)s",
-            "--parse-metadata", "%(artists.0)s:%(meta_album_artist)s",
-            # "--parse-metadata", "n_entries:%(meta_totaltracks)s",
             "--no-warnings",
         ]
+        
+        # album_artistが取得できた場合は固定値として設定
+        # アルバムアーティストが取得できた場合は固定値として設定
+        if set_album.value == True:
+            if album_artist:
+                escaped_artist = album_artist.replace("'", "'\\''")
+                command.extend([
+                    "--ppa", f"Metadata:-metadata album_artist='{escaped_artist}'"
+                ])
+            else:
+                command.extend(["--parse-metadata", "%(artists.0)s:%(meta_album_artist)s"])
+        else:
+            # 取得できなかった場合は元のコマンドに戻す
+            command.extend(["--parse-metadata", "%(artists.0)s:%(meta_album_artist)s"])
+        
         if cookie_from.value == "firefox":
             command.extend(["--cookies-from-browser", "firefox"])
         elif cookie_from.value == "file":
-            command.extend(["--cookies",cookie_file.value])
+            command.extend(["--cookies", cookie_file.value])
 
         def run_download():
             nonlocal download_process
             timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            log_filename = os.path.join("./logs",f"download_{timestamp}.log")
+            log_filename = os.path.normpath(os.path.join("./logs",f"download_{timestamp}.log"))
             logging.basicConfig(
                 filename=log_filename,
                 level=logging.INFO,
@@ -156,8 +216,6 @@ def main(page:Page):
                 if output:
                     log_entry = f"{output.strip()}"
                     logging.info(log_entry)
-                    log.value = output
-                    log.update()
                     if "Downloading:" in output:
                         progress = progress = output.split("Downloading: ")[1].split(" | ")[0].strip()
                         title = output.split("Title: ")[1].split(" | ")[0].strip()
@@ -165,20 +223,27 @@ def main(page:Page):
                         progress_bar.update()
                         title_text.value = title
                         title_text.update()
+                    else:
+                        log.controls.append(Text(value=output.strip()))
+                        log.scroll_to(offset=-1)
+                        log.update()
 
 
             for line in process.stderr:
                 error_message = line.strip()
                 print(error_message)
                 logging.error(f"[ERROR] {error_message}")
+                log.controls.append(Text(value=f"エラー: {error_message}",color=Colors.RED,weight=FontWeight.BOLD))
 
             process.wait()
 
             if process.returncode != 0:
-                log.value = "エラーログ :"+log_filename
+                log.controls.append(Text(value=f"エラーが発生しました:{log_filename}",color=Colors.RED))
+                log.scroll_to(offset=-1)
                 progress_bar.value = 0
             else:
-                log.value = "正常にダウンロード出来ました。"
+                log.controls.append(Text(value="正常にダウンロードできました",color=Colors.GREEN))
+                log.scroll_to(offset=-1)
                 progress_bar.value = 1
 
             title_text.value = ""
@@ -190,27 +255,95 @@ def main(page:Page):
 
     url_input = TextField(label="URL", expand=True, on_submit=download)
     paste_btn = IconButton(icon=Icons.PASTE, on_click=paste_url)
-    cookie_from = Dropdown(options=[dropdown.Option(key="none",text="None"),dropdown.Option(key="firefox",text="Firefox"),dropdown.Option(key="file",text="cookies.txt")],label="Cookie From",on_change=cookie)
-    cookie_file = TextField(label="Cookie File Path",expand=True,visible=False)
-    cookie_select = TextButton(text="Select",visible=False,on_click=lambda _:sel_cookie_dialog.pick_files(allow_multiple=False,allowed_extensions=["txt"]))
-    format_dropdown = Dropdown(options=[dropdown.Option(key="mp3",text="mp3"),dropdown.Option(key="opus",text="opus"),dropdown.Option(key="m4a",text="m4a"),dropdown.Option(key="flac",text="flac")],label="Format",value="mp3",on_change=change)
+    cookie_from = Dropdown(
+        options=[
+            dropdown.Option(key="none", text="None"),
+            dropdown.Option(key="firefox", text="Firefox"),
+            dropdown.Option(key="file", text="cookies.txt")
+        ],
+        label="Cookie From",
+        on_change=cookie,
+        value="none"
+    )
+    cookie_file = TextField(label="Cookie File Path", expand=True, visible=False)
+    cookie_select = TextButton(
+        text="Select", 
+        visible=False,
+        on_click=lambda _: sel_cookie_dialog.pick_files(allow_multiple=False, allowed_extensions=["txt"])
+    )
+    format_dropdown = Dropdown(
+        options=[
+            dropdown.Option(key="mp3", text="mp3"),
+            dropdown.Option(key="opus", text="opus"),
+            dropdown.Option(key="m4a", text="m4a"),
+            dropdown.Option(key="flac", text="flac"),
+            dropdown.Option(key="alac", text="alac")
+        ],
+        label="Format",
+        value="mp3",
+        on_change=change
+    )
     output_path = TextField(label="Output Path", value=os.path.normcase(os.path.expanduser("~")), expand=True)
     output_select = TextButton(text="Select", on_click=lambda e: sel_path_dialog.get_directory_path(dialog_title="保存先を選択"))
+    set_album = Checkbox(label="アルバムアーティストを設定")
     progress_bar = ProgressBar(value=0)
     title_text = TextField(read_only=True, label="Title")
-    log = Text(max_lines=1,value="ログが表示されます")
-    dl_btn = FloatingActionButton(icon=Icons.DOWNLOAD, on_click=download)
+    log = Column(
+        controls=[],
+        scroll=ScrollMode.AUTO,
+        on_scroll_interval=0,
+        height=400,  # ログ表示部分の高さを増やしました
+        width=float("inf"),   # 幅を設定
+        spacing=2,
+        expand=True
+    )
+    dl_btn = ElevatedButton(text="ダウンロード", icon=Icons.DOWNLOAD, on_click=download, width=200)  # ボタンサイズ調整
 
+    # 左パネル: 操作コントロール
+    left_panel = Container(
+        content=Column(
+            controls=[
+                Row([url_input, paste_btn], alignment=MainAxisAlignment.SPACE_BETWEEN),
+                Row([output_path, output_select], alignment=MainAxisAlignment.SPACE_BETWEEN),
+                Row([cookie_from,format_dropdown]),
+                Row([cookie_file, cookie_select], alignment=MainAxisAlignment.SPACE_BETWEEN),
+                set_album,
+                title_text,
+                progress_bar,
+                Row([dl_btn], alignment=MainAxisAlignment.CENTER)  # ダウンロードボタンを中央に配置
+            ],
+            spacing=15,  # コントロール間の間隔を広げました
+            horizontal_alignment=CrossAxisAlignment.START
+        ),
+        width=500,
+        padding=15,
+        border=border.all(1, "#DDDDDD"),
+        border_radius=border_radius.all(10),
+        margin=margin.only(right=10)
+    )
+
+    # 右パネル: ログ表示エリア
+    right_panel = Container(
+        content=Column(
+            controls=[
+                Text("ログ", size=16, weight=FontWeight.BOLD),  # タイトル追加
+                log
+            ]
+        ),
+        expand=True,
+        border=border.all(1, "#DDDDDD"),
+        border_radius=border_radius.all(10),
+        padding=15
+    )
+
+    # メインレイアウト
     page.add(
-        Row([url_input, paste_btn]),
-        Row([output_path, output_select]),
-        cookie_from,
-        Row([cookie_file, cookie_select]),
-        format_dropdown,
-        title_text,
-        progress_bar,
-        log,
-        dl_btn
+        Row(
+            [left_panel, right_panel],
+            spacing=10,
+            expand=True,
+            alignment=MainAxisAlignment.START
+        )
     )
 
     load_config()

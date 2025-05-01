@@ -6,7 +6,11 @@ import pyperclip
 import logging
 import datetime
 import json
-
+from win11toast import toast
+import requests
+from PIL import Image, UnidentifiedImageError
+import io
+import tempfile
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
 VERSION = "1.11"
@@ -105,50 +109,84 @@ def main(page:Page):
         dl_btn.disabled = True
         page.update()
         
-        if set_album.value == True:
-            # まず最初のエントリのメタデータだけを取得
-            metadata_command = [
-                "yt-dlp",
-                url_input.value,
-                "--dump-json",
-                "--playlist-items", "1",
-                "--no-warnings",
-            ]
+        # まず最初のエントリのメタデータだけを取得
+        metadata_command = [
+            "yt-dlp",
+            url_input.value,
+            "--dump-json",
+            "--playlist-items", "1",
+            "--no-warnings",
+        ]
+        
+        if cookie_from.value == "firefox":
+            metadata_command.extend(["--cookies-from-browser", "firefox"])
+        elif cookie_from.value == "file":
+            metadata_command.extend(["--cookies", cookie_file.value])
+        
+        # メタデータ取得プロセスを実行
+        try:
+            metadata_process = subprocess.run(
+                metadata_command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True
+            )
             
-            if cookie_from.value == "firefox":
-                metadata_command.extend(["--cookies-from-browser", "firefox"])
-            elif cookie_from.value == "file":
-                metadata_command.extend(["--cookies", cookie_file.value])
-            
-            # メタデータ取得プロセスを実行
-            try:
-                metadata_process = subprocess.run(
-                    metadata_command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    check=True
-                )
+            # JSONとしてパース
+            import json
+            metadata = json.loads(metadata_process.stdout)
+            # 諸々の情報をおいておく
+            thumbnail_image = None
+            tmp_path = None
+            album_name = None
+            if 'thumbnail' in metadata:
+                thumbnail_url = metadata['thumbnail']
+                try:
+                    response = requests.get(thumbnail_url, timeout=10)
+                    response.raise_for_status()
+                    image_bytes = response.content
+                    image_stream = io.BytesIO(image_bytes)
+                    with Image.open(image_stream) as img:
+                        png_stream = io.BytesIO()
+                        img.save(png_stream, format="PNG")
+                        png_bytes = png_stream.getvalue()
+                    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
+                        temp_file.write(png_bytes)
+                        tmp_path = temp_file.name
+                        print(f"{tmp_path}")
+                except requests.exceptions.RequestException as e:
+                    pass
+                except UnidentifiedImageError:
+                    pass
+                except Exception as e:
+                    pass
+
+                if tmp_path:
+                    thumbnail_image = {
+                        'src': tmp_path,
+                        'placement': 'hero'
+                    }
+            if 'album' in metadata:
+                album_name = metadata['album']
                 
-                # JSONとしてパース
-                import json
-                metadata = json.loads(metadata_process.stdout)
+            # artists.0の値を取得（存在する場合）
+            album_artist = None
+            if 'uploader' in metadata:
+                uploader = metadata['uploader']
+                if uploader.endswith(" - Topic"):
+                    album_artist = uploader.removesuffix(" - Topic")
+                else:
+                    album_artist = uploader
+            elif 'artists' in metadata and len(metadata['artists']) > 0:
+                album_artist = metadata['artists'][0]
+            elif 'channel' in metadata:
+                album_artist = metadata['channel']
                 
-                # artists.0の値を取得（存在する場合）
-                album_artist = None
-                if 'uploader' in metadata:
-                    uploader = metadata['uploader']
-                    if uploader.endswith(" - Topic"):
-                        album_artist = uploader.removesuffix(" - Topic")
-                elif 'artists' in metadata and len(metadata['artists']) > 0:
-                    album_artist = metadata['artists'][0]
-                elif 'channel' in metadata:
-                    album_artist = metadata['channel']
+            log.controls.append(Text(f"アルバムアーティスト: {album_artist}", color=Colors.GREEN))
+            page.update()
                 
-                log.controls.append(Text(f"アルバムアーティスト: {album_artist}", color=Colors.GREEN))
-                page.update()
-                
-            except Exception as ex:
+        except Exception as ex:
                 log.controls.append(Text(f"メタデータ取得エラー: {str(ex)}", color=Colors.RED))
                 page.update()
                 album_artist = None
@@ -243,14 +281,17 @@ def main(page:Page):
                 log.controls.append(Text(value=f"エラーが発生しました:{log_filename}",color=Colors.RED))
                 log.scroll_to(offset=-1)
                 progress_bar.value = 0
+                toast("エラーが発生しました",f"ダウンロード中にエラーが発生しました")
             else:
                 log.controls.append(Text(value="正常にダウンロードできました",color=Colors.GREEN))
                 log.scroll_to(offset=-1)
                 progress_bar.value = 1
+                toast("ダウンロード完了",f"{album_artist} - {album_name}をダウンロードしました",image=thumbnail_image)
 
             title_text.value = ""
             dl_btn.disabled = False
             page.update()
+            os.remove(tmp_path)
 
         threading.Thread(target=run_download, daemon=True).start()
 

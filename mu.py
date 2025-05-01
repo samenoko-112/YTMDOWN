@@ -136,8 +136,10 @@ def main(page:Page):
                 
                 # artists.0の値を取得（存在する場合）
                 album_artist = None
-                if 'artist' in metadata:
-                    album_artist = metadata['artist']
+                if 'uploader' in metadata:
+                    uploader = metadata['uploader']
+                    if uploader.endswith(" - Topic"):
+                        album_artist = uploader.removesuffix(" - Topic")
                 elif 'artists' in metadata and len(metadata['artists']) > 0:
                     album_artist = metadata['artists'][0]
                 elif 'channel' in metadata:

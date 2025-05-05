@@ -116,6 +116,7 @@ def main(page:Page):
             "--dump-json",
             "--playlist-items", "1",
             "--no-warnings",
+            "--add-header", "Accept-Language:ja-JP"
         ]
         
         if cookie_from.value == "firefox":
@@ -172,14 +173,17 @@ def main(page:Page):
                 
             # artists.0の値を取得（存在する場合）
             album_artist = None
-            if 'uploader' in metadata:
+            if 'artist' in metadata:
+                album_artist = metadata['artist']
+            elif 'artists' in metadata and len(metadata['artists']) > 0:
+                album_artist = metadata['artists'][0]
+            elif 'uploader' in metadata:
                 uploader = metadata['uploader']
                 if uploader.endswith(" - Topic"):
                     album_artist = uploader.removesuffix(" - Topic")
                 else:
                     album_artist = uploader
-            elif 'artists' in metadata and len(metadata['artists']) > 0:
-                album_artist = metadata['artists'][0]
+            
             elif 'channel' in metadata:
                 album_artist = metadata['channel']
                 

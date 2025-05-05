@@ -11,9 +11,10 @@ import requests
 from PIL import Image, UnidentifiedImageError
 import io
 import tempfile
+
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.11"
+VERSION = "1.2"
 
 def main(page:Page):
     page.title = f"YTMDOWN - version{VERSION}"
@@ -299,7 +300,10 @@ def main(page:Page):
 
         threading.Thread(target=run_download, daemon=True).start()
 
-
+    app_title = Row([
+        Text("YTMDOWN",color=Colors.BLACK,size=24,weight=FontWeight.BOLD),
+        Text(f"v{VERSION}",color=Colors.BLACK54)
+    ])
     url_input = TextField(label="URL", expand=True, on_submit=download)
     paste_btn = IconButton(icon=Icons.PASTE, on_click=paste_url)
     cookie_from = Dropdown(
@@ -350,6 +354,7 @@ def main(page:Page):
     left_panel = Container(
         content=Column(
             controls=[
+                app_title,
                 Row([url_input, paste_btn], alignment=MainAxisAlignment.SPACE_BETWEEN),
                 Row([output_path, output_select], alignment=MainAxisAlignment.SPACE_BETWEEN),
                 Row([cookie_from,format_dropdown]),
@@ -364,8 +369,6 @@ def main(page:Page):
         ),
         width=500,
         padding=15,
-        border=border.all(1, "#DDDDDD"),
-        border_radius=border_radius.all(10),
         margin=margin.only(right=10)
     )
 

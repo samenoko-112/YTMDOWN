@@ -14,7 +14,7 @@ import tempfile
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.2"
+VERSION = "1.21"
 
 def main(page:Page):
     page.title = f"YTMDOWN - version{VERSION}"
@@ -99,6 +99,18 @@ def main(page:Page):
         url_input.value = pyperclip.paste()
         url_input.update()
 
+    def change_high_quality(e):
+        if set_high_quality.value == True:
+            if cookie_from.value == "none":
+                set_high_quality.value = False
+                set_high_quality.update()
+            else:
+                set_high_quality.value = True
+                set_high_quality.update()
+        else:
+            set_high_quality.value = False
+            set_high_quality.update()
+    
     sel_path_dialog = FilePicker(on_result=sel_path)
     sel_cookie_dialog = FilePicker(on_result=sel_cookie)
     page.overlay.append(sel_path_dialog)
@@ -206,7 +218,6 @@ def main(page:Page):
             "--default-search", "ytsearch",
             "--add-header", "Accept-Language:ja-JP",
             "--add-metadata", "--embed-metadata",
-            "-f", "bestaudio/best",
             "-x", "--audio-format", format_dropdown.value, "--audio-quality", "0",
             "--embed-thumbnail", "--convert-thumbnails", "jpg",
             "--ppa", "ThumbnailsConvertor:-qmin 1 -q:v 1 -vf crop=\"'if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'\"",
@@ -216,6 +227,11 @@ def main(page:Page):
             "--no-warnings",
         ]
         
+        if set_high_quality.value == True:
+            command.extend(["-S","abr","-f","bestaudio[acodec=opus]","--extractor-args","youtube:formats=missing_pot"])
+        else:
+            command.extend(["-f","bestaudio/best"])
+
         # album_artistが取得できた場合は固定値として設定
         # アルバムアーティストが取得できた場合は固定値として設定
         if set_album.value == True:
@@ -337,6 +353,7 @@ def main(page:Page):
     output_path = TextField(label="Output Path", value=os.path.normcase(os.path.expanduser("~")), expand=True)
     output_select = TextButton(text="Select", on_click=lambda e: sel_path_dialog.get_directory_path(dialog_title="保存先を選択"))
     set_album = Checkbox(label="アルバムアーティストを設定")
+    set_high_quality = Checkbox(label="最高音質でダウンロードする(要Premium/Cookie)",tooltip="最高音質でダウンロードします。\nPremiumアカウントでログインしているCookieが必要です。\nPremiumアカウントでない場合エラーが発生します。",on_change=change_high_quality)
     progress_bar = ProgressBar(value=0)
     title_text = TextField(read_only=True, label="Title")
     log = Column(
@@ -360,6 +377,7 @@ def main(page:Page):
                 Row([cookie_from,format_dropdown]),
                 Row([cookie_file, cookie_select], alignment=MainAxisAlignment.SPACE_BETWEEN),
                 set_album,
+                set_high_quality,
                 title_text,
                 progress_bar,
                 Row([dl_btn], alignment=MainAxisAlignment.CENTER)  # ダウンロードボタンを中央に配置

@@ -70,12 +70,12 @@ jobs:
         
     - name: Build macOS App
       run: |
-        flet pack ./mu.py --name YTMDOWN --onedir --product-name YTMDOWN --copyright samenoko-112 -y
+        flet pack ./mu.py --name YTMDOWN --product-name YTMDOWN --copyright samenoko-112 -y
     
-    - name: zip
+    - name: Create ZIP
       run: |
         cd dist
-        zip -r YTMDOWN-${{ github.event.inputs.version }}-macos.zip YTMDOWN/
+        zip -r YTMDOWN-${{ github.event.inputs.version }}-macos.zip YTMDOWN.app/
         
     - name: Upload macOS Artifact
       uses: actions/upload-artifact@v4

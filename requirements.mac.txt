@@ -1,5 +1,4 @@
 flet
 pyperclip
-win11toast
 requests
 pillow

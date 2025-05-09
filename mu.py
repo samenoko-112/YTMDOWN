@@ -6,15 +6,36 @@ import pyperclip
 import logging
 import datetime
 import json
-from win11toast import toast
+import platform
 import requests
 from PIL import Image, UnidentifiedImageError
 import io
 import tempfile
 
+# プラットフォームに応じた通知システムのインポート
+if platform.system() == "Windows":
+    try:
+        from win11toast import toast
+        has_windows_toast = True
+    except ImportError:
+        has_windows_toast = False
+else:
+    has_windows_toast = False
+
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
 VERSION = "1.21"
+
+def show_notification(title, message, image=None):
+    """プラットフォームに応じた通知を表示"""
+    if platform.system() == "Windows" and has_windows_toast:
+        toast(title, message, image=image)
+    elif platform.system() == "Darwin":  # macOS
+        os.system(f"""
+            osascript -e 'display notification "{message}" with title "{title}"'
+        """)
+    elif platform.system() == "Linux":
+        os.system(f'notify-send "{title}" "{message}"')
 
 def main(page:Page):
     page.title = f"YTMDOWN - version{VERSION}"
@@ -302,12 +323,12 @@ def main(page:Page):
                 log.controls.append(Text(value=f"エラーが発生しました:{log_filename}",color=Colors.RED))
                 log.scroll_to(offset=-1)
                 progress_bar.value = 0
-                toast("エラーが発生しました",f"ダウンロード中にエラーが発生しました")
+                show_notification("エラーが発生しました", "ダウンロード中にエラーが発生しました")
             else:
                 log.controls.append(Text(value="正常にダウンロードできました",color=Colors.GREEN))
                 log.scroll_to(offset=-1)
                 progress_bar.value = 1
-                toast("ダウンロード完了",f"{album_artist} - {album_name}をダウンロードしました",image=thumbnail_image)
+                show_notification("ダウンロード完了", f"{album_artist} - {album_name}をダウンロードしました", image=thumbnail_image)
 
             title_text.value = ""
             dl_btn.disabled = False

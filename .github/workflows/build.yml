@@ -39,7 +39,7 @@ jobs:
         
     - name: Build EXE
       run: |
-        flet pack .\mu.py --name YTMDOWN --onedir --product-name YTMDOWN --copyright samenoko-112 -y
+        flet pack .\main.py --name YTMDOWN --onedir --product-name YTMDOWN --copyright samenoko-112 -y
     
     - name: zip
       run: |

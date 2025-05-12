@@ -60,12 +60,12 @@ jobs:
     
     steps:
     - name: Download Windows Artifact
-      uses: actions/download-artifact@v4.1.4
+      uses: actions/download-artifact@v4
       with:
         name: windows-build
         
     - name: Create Release
-      uses: softprops/action-gh-release@v1.0.0
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.event.inputs.version }}
         name: YTMDOWN ${{ github.event.inputs.version }}

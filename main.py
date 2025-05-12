@@ -24,7 +24,7 @@ else:
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.21"
+VERSION = "1.22"
 
 def show_notification(title, message, image=None):
     """プラットフォームに応じた通知を表示"""

@@ -53,8 +53,9 @@ def main(page:Page):
                     cookie_from.value = config.get("COOKIE_FROM", "")
                     cookie_file.value = config.get("COOKIE_FILE", "")
                     format_dropdown.value = config.get("FORMAT","mp3")
+                    set_album.value = config.get("SET_ALBUM", False)
+                    set_high_quality.value = config.get("SET_HIGH_QUALITY", False)
                     page.update()
-                    #print("読み込んだよ")
             except json.JSONDecodeError:
                 print("設定ファイルが壊れています。")
         else:
@@ -66,11 +67,12 @@ def main(page:Page):
             "OUTPUT": output_path.value,
             "COOKIE_FROM": cookie_from.value,
             "COOKIE_FILE": cookie_file.value,
-            "FORMAT": format_dropdown.value
+            "FORMAT": format_dropdown.value,
+            "SET_ALBUM": set_album.value,
+            "SET_HIGH_QUALITY": set_high_quality.value
         }
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=4)
-        #print("保存したよ")
 
     def on_window_close(e):
         save_config()
@@ -131,6 +133,7 @@ def main(page:Page):
         else:
             set_high_quality.value = False
             set_high_quality.update()
+        save_config()
     
     sel_path_dialog = FilePicker(on_result=sel_path)
     sel_cookie_dialog = FilePicker(on_result=sel_cookie)
@@ -364,8 +367,7 @@ def main(page:Page):
             dropdown.Option(key="mp3", text="mp3"),
             dropdown.Option(key="opus", text="opus"),
             dropdown.Option(key="m4a", text="m4a"),
-            dropdown.Option(key="flac", text="flac"),
-            dropdown.Option(key="alac", text="alac")
+            dropdown.Option(key="flac", text="flac")
         ],
         label="Format",
         value="mp3",
@@ -373,7 +375,7 @@ def main(page:Page):
     )
     output_path = TextField(label="Output Path", value=os.path.normcase(os.path.expanduser("~")), expand=True)
     output_select = TextButton(text="Select", on_click=lambda e: sel_path_dialog.get_directory_path(dialog_title="保存先を選択"))
-    set_album = Checkbox(label="アルバムアーティストを設定")
+    set_album = Checkbox(label="アルバムアーティストを設定", on_change=change)
     set_high_quality = Checkbox(label="最高音質でダウンロードする(要Premium/Cookie)",tooltip="最高音質でダウンロードします。\nPremiumアカウントでログインしているCookieが必要です。\nPremiumアカウントでない場合エラーが発生します。",on_change=change_high_quality)
     progress_bar = ProgressBar(value=0)
     title_text = TextField(read_only=True, label="Title")

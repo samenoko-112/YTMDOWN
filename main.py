@@ -24,7 +24,7 @@ else:
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.23"
+VERSION = "1.24"
 
 def show_notification(title, message, image=None):
     """プラットフォームに応じた通知を表示"""
@@ -272,6 +272,8 @@ def main(page:Page):
         
         if cookie_from.value == "firefox":
             command.extend(["--cookies-from-browser", "firefox"])
+        elif cookie_from.value == "chrome":
+            command.extend(["--cookies-from-browser", "chrome"])
         elif cookie_from.value == "file":
             command.extend(["--cookies", cookie_file.value])
 
@@ -350,6 +352,7 @@ def main(page:Page):
         options=[
             dropdown.Option(key="none", text="None"),
             dropdown.Option(key="firefox", text="Firefox"),
+            dropdown.Option(key="chrome", text="Chrome"),
             dropdown.Option(key="file", text="cookies.txt")
         ],
         label="Cookie From",

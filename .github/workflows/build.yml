@@ -18,6 +18,9 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    env:
+      VERSION: ${{ github.event.inputs.version || github.ref_name }}
+    
     
     steps:
     - name: 📥 Checkout code
@@ -59,18 +62,20 @@ jobs:
           Write-Error "dist/YTMDOWN フォルダが存在しません。ビルドが失敗している可能性があります。"
           exit 1
         }
-        Compress-Archive -Path dist/YTMDOWN/* -DestinationPath dist/YTMDOWN-${{ github.event.inputs.version }}-windows.zip -Force
+        Compress-Archive -Path dist/YTMDOWN/* -DestinationPath dist/YTMDOWN-${{ env.VERSION }}-windows.zip -Force
         
     - name: 📤 Upload Artifacts (ZIP)
       uses: actions/upload-artifact@v4
       with:
         name: windows-build
         path: |
-          dist/YTMDOWN-${{ github.event.inputs.version }}-windows.zip
+          dist/YTMDOWN-${{ env.VERSION }}-windows.zip
 
   create-release:
     needs: [build-windows]
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version || github.ref_name }}
     
     steps:
     - name: 📥 Download Artifacts
@@ -81,13 +86,13 @@ jobs:
     - name: 🏷️ Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.event.inputs.version || github.ref_name }}
-        name: YTMDOWN ${{ github.event.inputs.version || github.ref_name }}
+        tag_name: ${{ env.VERSION }}
+        name: YTMDOWN ${{ env.VERSION }}
         body: ${{ github.event.inputs.release_notes || '自動生成されたリリースです。' }}
         draft: true
         prerelease: false
         files: |
-          YTMDOWN-${{ github.event.inputs.version }}-windows.zip
+          YTMDOWN-${{ env.VERSION }}-windows.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     

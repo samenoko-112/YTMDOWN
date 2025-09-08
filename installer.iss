@@ -14,8 +14,8 @@ SolidCompression=yes
 Source: "dist\YTMDOWN\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\{#AppName}"; Filename: "{app}\YTMDOWN.exe"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\YTMDOWN.exe"; Tasks: desktopicon
+Name: "{autoprograms}\\YTMDOWN"; Filename: "{app}\\YTMDOWN.exe"
+Name: "{autodesktop}\\YTMDOWN"; Filename: "{app}\\YTMDOWN.exe"; Tasks: desktopicon
 
 [Tasks]
 Name: desktopicon; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked

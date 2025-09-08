@@ -1,12 +1,11 @@
 [Setup]
-#include "version.iss"
 
 AppName=YTMDOWN
 AppVersion={#AppVersion}
 DefaultDirName={autopf}\YTMDOWN
 DefaultGroupName=YTMDOWN
 OutputDir=installer_output
-OutputBaseFilename=YTMDOWN-Setup-{#AppVersion}
+OutputBaseFilename=YTMDOWN-Setup
 Compression=lzma
 SolidCompression=yes
 

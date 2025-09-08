@@ -5,15 +5,6 @@ on:
     tags:
       - v*
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'リリースバージョン (例: v1.0.0)'
-        required: true
-        default: 'v1.0.0'
-      release_notes:
-        description: 'リリースノート'
-        required: false
-        default: '新機能と改善点'
 
 jobs:
   build-windows:
@@ -47,24 +38,26 @@ jobs:
 
     # 👇 ここから Inno Setup 関連 👇
 
-    - name: 🧩 Generate version.iss
+    # 先頭に #define AppVersion を差し込んだ一時ファイルを作成
+    - name: 🧩 Prepare installer.build.iss with version define
       run: |
-        Set-Content -Path "version.iss" -Value "#define AppVersion `"${{ github.event.inputs.version }}`""
+        $version = "${{ github.ref_name }}"
+        $defineLine = "#define AppVersion \"$version\""
+        $content = Get-Content -Raw installer.iss
+        @($defineLine, $content) | Set-Content -Path installer.build.iss -Encoding UTF8
       shell: pwsh
 
     - name: 📦 Compile Installer with Inno Setup
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.7  # 最新版
       with:
-        path: installer.iss
+        path: installer.build.iss
         options: /O+ /Q  # 最適化 + クワイエット
 
-    - name: 🏷️ Rename Installer
+    - name: 🏷️ Collect Installer
       run: |
-        $installer = Get-ChildItem -Path "installer_output" -Filter "*.exe" -Recurse | Select-Object -First 1
-        if ($installer) {
-          $newName = "YTMDOWN-Setup-${{ github.event.inputs.version }}.exe"
-          Rename-Item -Path $installer.FullName -NewName $newName
-          Move-Item -Path "installer_output\$newName" -Destination "./$newName" -Force
+        $installer = Join-Path "installer_output" "YTMDOWN-Setup.exe"
+        if (Test-Path $installer) {
+          Copy-Item -Path $installer -Destination "./YTMDOWN-Setup.exe" -Force
         } else {
           Write-Error "インストーラーが見つかりません。installer.iss を確認してください。"
           exit 1
@@ -72,15 +65,15 @@ jobs:
 
     - name: 🗜️ Create ZIP Archive
       run: |
-        Compress-Archive -Path dist/YTMDOWN/* -DestinationPath dist/YTMDOWN-${{ github.event.inputs.version }}-windows.zip
+        Compress-Archive -Path dist/YTMDOWN/* -DestinationPath dist/YTMDOWN-windows.zip
         
     - name: 📤 Upload Artifacts (ZIP + Installer)
       uses: actions/upload-artifact@v4
       with:
         name: windows-build
         path: |
-          dist/YTMDOWN-${{ github.event.inputs.version }}-windows.zip
-          YTMDOWN-Setup-${{ github.event.inputs.version }}.exe  # ← インストーラーも含める
+          dist/YTMDOWN-windows.zip
+          YTMDOWN-Setup.exe
 
   create-release:
     needs: [build-windows]
@@ -95,14 +88,14 @@ jobs:
     - name: 🏷️ Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.event.inputs.version }}
-        name: YTMDOWN ${{ github.event.inputs.version }}
-        body: ${{ github.event.inputs.release_notes }}
+        tag_name: ${{ github.ref_name }}
+        name: YTMDOWN Release
+        body: 自動生成されたリリースです。
         draft: true
         prerelease: false
         files: |
-          YTMDOWN-${{ github.event.inputs.version }}-windows.zip
-          YTMDOWN-Setup-${{ github.event.inputs.version }}.exe  # ← インストーラーもリリースに添付
+          YTMDOWN-Setup.exe
+          dist/YTMDOWN-windows.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     

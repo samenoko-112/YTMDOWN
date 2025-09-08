@@ -44,6 +44,10 @@ jobs:
     - name: 🚀 Build EXE with Flet Pack
       run: |
         flet pack .\main.py --name YTMDOWN --onedir --product-name YTMDOWN --copyright samenoko-112 -y
+        if (!(Test-Path -Path "dist/YTMDOWN/YTMDOWN.exe")) {
+          Write-Error "dist/YTMDOWN/YTMDOWN.exe が見つかりません。flet pack の出力を確認してください。"
+          exit 1
+        }
 
     # 👇 ここから Inno Setup 関連 👇
 
@@ -51,7 +55,9 @@ jobs:
     - name: 🧩 Prepare installer.build.iss with version define
       run: |
         $version = "${{ github.event.inputs.version || github.ref_name }}"
-        $defineLine = "#define AppVersion \"$version\""
+        $appVersion = ($version -replace '^v', '')
+        if ([string]::IsNullOrWhiteSpace($appVersion)) { $appVersion = '1.0.0' }
+        $defineLine = ('#define AppVersion "{0}"' -f $appVersion)
         $content = Get-Content -Raw installer.iss
         @($defineLine, $content) | Set-Content -Path installer.build.iss -Encoding UTF8
       shell: pwsh
@@ -74,7 +80,11 @@ jobs:
 
     - name: 🗜️ Create ZIP Archive
       run: |
-        Compress-Archive -Path dist/YTMDOWN/* -DestinationPath dist/YTMDOWN-windows.zip
+        if (!(Test-Path -Path "dist/YTMDOWN")) {
+          Write-Error "dist/YTMDOWN フォルダが存在しません。ビルドが失敗している可能性があります。"
+          exit 1
+        }
+        Compress-Archive -Path dist/YTMDOWN/* -DestinationPath dist/YTMDOWN-windows.zip -Force
         
     - name: 📤 Upload Artifacts (ZIP + Installer)
       uses: actions/upload-artifact@v4

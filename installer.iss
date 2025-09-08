@@ -4,7 +4,7 @@ AppName=YTMDOWN
 AppVersion={#AppVersion}
 DefaultDirName={autopf}\YTMDOWN
 DefaultGroupName=YTMDOWN
-OutputDir=installer_output
+OutputDir={#SourcePath}\installer_output
 OutputBaseFilename=YTMDOWN-Setup
 Compression=lzma
 SolidCompression=yes
@@ -13,8 +13,8 @@ SolidCompression=yes
 Source: "dist\YTMDOWN\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\\YTMDOWN"; Filename: "{app}\\YTMDOWN.exe"
-Name: "{autodesktop}\\YTMDOWN"; Filename: "{app}\\YTMDOWN.exe"; Tasks: desktopicon
+Name: "{autoprograms}\YTMDOWN"; Filename: "{app}\YTMDOWN.exe"
+Name: "{autodesktop}\YTMDOWN"; Filename: "{app}\YTMDOWN.exe"; Tasks: desktopicon
 
 [Tasks]
 Name: desktopicon; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked

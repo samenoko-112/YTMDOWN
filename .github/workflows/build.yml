@@ -5,6 +5,15 @@ on:
     tags:
       - v*
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'リリースバージョン (例: v1.2.3)'
+        required: true
+        default: 'v1.0.0'
+      release_notes:
+        description: 'リリースノート（任意）'
+        required: false
+        default: '自動生成されたリリースです。'
 
 jobs:
   build-windows:
@@ -41,7 +50,7 @@ jobs:
     # 先頭に #define AppVersion を差し込んだ一時ファイルを作成
     - name: 🧩 Prepare installer.build.iss with version define
       run: |
-        $version = "${{ github.ref_name }}"
+        $version = "${{ github.event.inputs.version || github.ref_name }}"
         $defineLine = "#define AppVersion \"$version\""
         $content = Get-Content -Raw installer.iss
         @($defineLine, $content) | Set-Content -Path installer.build.iss -Encoding UTF8
@@ -88,9 +97,9 @@ jobs:
     - name: 🏷️ Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.ref_name }}
-        name: YTMDOWN Release
-        body: 自動生成されたリリースです。
+        tag_name: ${{ github.event.inputs.version || github.ref_name }}
+        name: YTMDOWN ${{ github.event.inputs.version || github.ref_name }}
+        body: ${{ github.event.inputs.release_notes || '自動生成されたリリースです。' }}
         draft: true
         prerelease: false
         files: |

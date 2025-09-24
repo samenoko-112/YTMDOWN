@@ -24,7 +24,7 @@ else:
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.25"
+VERSION = "1.26"
 
 def show_notification(title, message, image=None):
     """プラットフォームに応じた通知を表示"""
@@ -177,7 +177,7 @@ def main(page:Page):
                     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
                         temp_file.write(png_bytes)
                         tmp_path = temp_file.name
-                        print(f"{tmp_path}")
+                        # print(f"{tmp_path}")
                 except requests.exceptions.RequestException as e:
                     pass
                 except UnidentifiedImageError:
@@ -305,6 +305,9 @@ def main(page:Page):
                 log.controls.append(Text(value=f"エラー: {error_message}",color=Colors.RED,weight=FontWeight.BOLD))
 
             process.wait()
+            title_text.value = ""
+            dl_btn.disabled = False
+            page.update()
 
             if process.returncode != 0:
                 log.controls.append(Text(value=f"エラーが発生しました:{log_filename}",color=Colors.RED))
@@ -317,9 +320,7 @@ def main(page:Page):
                 progress_bar.value = 1
                 show_notification("ダウンロード完了", f"{album_artist} - {album_name}をダウンロードしました", image=thumbnail_image)
 
-            title_text.value = ""
-            dl_btn.disabled = False
-            page.update()
+            
             os.remove(tmp_path)
 
         threading.Thread(target=run_download, daemon=True).start()
@@ -337,13 +338,14 @@ def main(page:Page):
             dropdown.Option(key="chrome", text="Chrome"),
             dropdown.Option(key="file", text="cookies.txt")
         ],
-        label="Cookie From",
+        label="cookieの取得元",
         on_change=cookie,
-        value="none"
+        value="none",
+        expand=True
     )
-    cookie_file = TextField(label="Cookie File Path", expand=True, visible=False)
+    cookie_file = TextField(label="cookies.txtのパス", expand=True, visible=False)
     cookie_select = TextButton(
-        text="Select", 
+        text="選択", 
         visible=False,
         on_click=lambda _: sel_cookie_dialog.pick_files(allow_multiple=False, allowed_extensions=["txt"])
     )
@@ -354,15 +356,16 @@ def main(page:Page):
             dropdown.Option(key="m4a", text="m4a"),
             dropdown.Option(key="flac", text="flac")
         ],
-        label="Format",
+        label="フォーマット",
         value="mp3",
-        on_change=change
+        on_change=change,
+        expand=True
     )
-    output_path = TextField(label="Output Path", value=os.path.normcase(os.path.expanduser("~")), expand=True)
-    output_select = TextButton(text="Select", on_click=lambda e: sel_path_dialog.get_directory_path(dialog_title="保存先を選択"))
+    output_path = TextField(label="保存先", value=os.path.normcase(os.path.expanduser("~")), expand=True)
+    output_select = TextButton(text="選択", on_click=lambda e: sel_path_dialog.get_directory_path(dialog_title="保存先を選択"))
     set_album = Checkbox(label="アルバムアーティストを設定", on_change=change)
-    progress_bar = ProgressBar(value=0)
-    title_text = TextField(read_only=True, label="Title")
+    progress_bar = ProgressBar(value=0,border_radius=border_radius.all(10))
+    title_text = TextField(read_only=True, label="タイトル")
     log = Column(
         controls=[],
         scroll=ScrollMode.AUTO,

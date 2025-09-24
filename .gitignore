@@ -2,5 +2,5 @@
 /dist
 /build
 *.spec
-*.json
+config.json
 /venv

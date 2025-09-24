@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "name": "zh_tw",
+    "display_name": "繁體中文",
+    "flag": "tw",
+    "author": "samenoko-112"
+  },
+  "ui": {
+    "app_title": "YTMDOWN",
+    "url_input": "URL",
+    "paste_btn": "貼上",
+    "cookie_from": "Cookie 來源",
+    "cookie_file": "cookies.txt 路徑",
+    "cookie_select": "選擇",
+    "output_path": "儲存位置",
+    "output_select": "選擇",
+    "set_album": "設定專輯藝人",
+    "format": "格式",
+    "title": "標題",
+    "log": "日誌",
+    "download": "下載",
+    "select_output_dialog": "選擇儲存位置"
+  },
+  "msg": {
+    "start_download": "開始下載...",
+    "album_artist": "專輯藝人",
+    "download_ok": "已成功下載"
+  },
+  "error": {
+    "metadata": "中繼資料取得錯誤"
+  },
+  "notify": {
+    "error_title": "發生錯誤",
+    "error_body": "下載過程中發生錯誤",
+    "done_title": "下載完成",
+    "done_body_tail": "已下載"
+  }
+}
+

@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "name": "es_es",
+    "display_name": "Español",
+    "flag": "es",
+    "author": "samenoko-112"
+  },
+  "ui": {
+    "app_title": "YTMDOWN",
+    "url_input": "URL",
+    "paste_btn": "Pegar",
+    "cookie_from": "Origen de cookies",
+    "cookie_file": "Ruta a cookies.txt",
+    "cookie_select": "Seleccionar",
+    "output_path": "Carpeta de salida",
+    "output_select": "Seleccionar",
+    "set_album": "Establecer artista del álbum",
+    "format": "Formato",
+    "title": "Título",
+    "log": "Registro",
+    "download": "Descargar",
+    "select_output_dialog": "Seleccionar carpeta de salida"
+  },
+  "msg": {
+    "start_download": "Iniciando la descarga...",
+    "album_artist": "Artista del álbum",
+    "download_ok": "Descargado correctamente"
+  },
+  "error": {
+    "metadata": "Error al obtener metadatos"
+  },
+  "notify": {
+    "error_title": "Ocurrió un error",
+    "error_body": "Ocurrió un error durante la descarga",
+    "done_title": "Descarga completa",
+    "done_body_tail": " se ha descargado"
+  }
+}
+

@@ -24,7 +24,70 @@ else:
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.26"
+VERSION = "1.30"
+
+# i18n 設定
+LANG_DIR = "./lang"
+DEFAULT_LANG = "ja_jp"
+
+# シンプルな翻訳取得関数
+def load_translations(lang_code: str):
+    """lang/ 配下の JSON を読み取って辞書を返す。失敗時は空辞書。
+    lang ファイルが壊れていてもアプリが動作するように安全に読み込む。
+    """
+    lang_path = os.path.join(LANG_DIR, f"{lang_code}.json")
+    if not os.path.exists(lang_path):
+        return {}
+    try:
+        with open(lang_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        # 不正な JSON などは握りつぶして空辞書
+        return {}
+
+def translate(translations: dict, key: str, default_text: str) -> str:
+    """キーは dot でネスト参照 (e.g. "ui.app_title")。見つからなければ default_text。"""
+    node = translations
+    for part in key.split("."):
+        if isinstance(node, dict) and part in node:
+            node = node[part]
+        else:
+            return default_text
+    return node if isinstance(node, str) else default_text
+
+# 国旗ユーティリティ: "jp" → "🇯🇵"。既に絵文字ならそのまま使用
+def country_code_to_flag(code: str) -> str:
+    if not isinstance(code, str):
+        return ""
+    code = code.strip()
+    if len(code) == 2 and code.isalpha():
+        base = 127397  # ord('🇦') - ord('A')
+        return chr(ord(code[0].upper()) + base) + chr(ord(code[1].upper()) + base)
+    return code  # 既に絵文字など
+
+def load_lang_meta(lang_code: str):
+    data = load_translations(lang_code)
+    meta = data.get("meta", {}) if isinstance(data, dict) else {}
+    display_name = meta.get("display_name", lang_code)
+    flag_raw = meta.get("flag", "")
+    flag = country_code_to_flag(flag_raw)
+    return display_name, flag
+
+def list_available_languages():
+    """lang ディレクトリの *.json を走査し、(code, display_name, flag) のリストを返す"""
+    langs = []
+    try:
+        for filename in os.listdir(LANG_DIR):
+            if not filename.endswith(".json"):
+                continue
+            code = filename[:-5]
+            display_name, flag = load_lang_meta(code)
+            langs.append((code, display_name, flag))
+    except Exception:
+        pass
+    # 優先的に DEFAULT_LANG を先頭、その後は表示名でソート
+    langs.sort(key=lambda x: (0 if x[0] == DEFAULT_LANG else 1, x[1].lower()))
+    return langs
 
 def show_notification(title, message, image=None):
     """プラットフォームに応じた通知を表示"""
@@ -38,7 +101,11 @@ def show_notification(title, message, image=None):
         os.system(f'notify-send "{title}" "{message}"')
 
 def main(page:Page):
-    page.title = f"YTMDOWN - version{VERSION}"
+    # 設定と翻訳の初期化
+    current_lang = DEFAULT_LANG
+    translations = load_translations(current_lang)
+
+    page.title = f"{translate(translations, 'ui.app_title', 'YTMDOWN')} - version{VERSION}"
     page.window.center()
 
     download_process = None
@@ -54,6 +121,9 @@ def main(page:Page):
                     cookie_file.value = config.get("COOKIE_FILE", "")
                     format_dropdown.value = config.get("FORMAT","mp3")
                     set_album.value = config.get("SET_ALBUM", False)
+                    nonlocal current_lang, translations
+                    current_lang = config.get("LANG", DEFAULT_LANG)
+                    translations = load_translations(current_lang)
                     page.update()
             except json.JSONDecodeError:
                 print("設定ファイルが壊れています。")
@@ -68,6 +138,7 @@ def main(page:Page):
             "COOKIE_FILE": cookie_file.value,
             "FORMAT": format_dropdown.value,
             "SET_ALBUM": set_album.value,
+            "LANG": current_lang,
         }
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=4)
@@ -127,7 +198,7 @@ def main(page:Page):
 
     def download(e):
         progress_bar.value = None
-        log.controls.append(Text("ダウンロードを開始します...", color=Colors.BLUE))
+        log.controls.append(Text(translate(translations, 'msg.start_download', "ダウンロードを開始します..."), color=Colors.BLUE))
         dl_btn.disabled = True
         page.update()
         
@@ -209,11 +280,11 @@ def main(page:Page):
             elif 'channel' in metadata:
                 album_artist = metadata['channel']
                 
-            log.controls.append(Text(f"アルバムアーティスト: {album_artist}", color=Colors.GREEN))
+            log.controls.append(Text(f"{translate(translations, 'msg.album_artist', 'アルバムアーティスト')}: {album_artist}", color=Colors.GREEN))
             page.update()
                 
         except Exception as ex:
-                log.controls.append(Text(f"メタデータ取得エラー: {str(ex)}", color=Colors.RED))
+                log.controls.append(Text(f"{translate(translations, 'error.metadata', 'メタデータ取得エラー')}: {str(ex)}", color=Colors.RED))
                 page.update()
                 album_artist = None
         
@@ -310,27 +381,57 @@ def main(page:Page):
             page.update()
 
             if process.returncode != 0:
-                log.controls.append(Text(value=f"エラーが発生しました:{log_filename}",color=Colors.RED))
+                log.controls.append(Text(value=f"{translate(translations, 'notify.error_title', 'エラーが発生しました')}: {log_filename}",color=Colors.RED))
                 log.scroll_to(offset=-1)
                 progress_bar.value = 0
-                show_notification("エラーが発生しました", "ダウンロード中にエラーが発生しました")
+                show_notification(translate(translations, 'notify.error_title', 'エラーが発生しました'), translate(translations, 'notify.error_body', 'ダウンロード中にエラーが発生しました'))
             else:
-                log.controls.append(Text(value="正常にダウンロードできました",color=Colors.GREEN))
+                log.controls.append(Text(value=translate(translations, 'msg.download_ok', '正常にダウンロードできました'),color=Colors.GREEN))
                 log.scroll_to(offset=-1)
                 progress_bar.value = 1
-                show_notification("ダウンロード完了", f"{album_artist} - {album_name}をダウンロードしました", image=thumbnail_image)
+                show_notification(
+                    translate(translations, 'notify.done_title', 'ダウンロード完了'),
+                    f"{album_artist} - {album_name}{translate(translations, 'notify.done_body_tail', 'をダウンロードしました')}",
+                    image=thumbnail_image
+                )
 
             
-            os.remove(tmp_path)
+            try:
+                if 'tmp_path' in locals() and tmp_path:
+                    os.remove(tmp_path)
+            except Exception:
+                pass
 
         threading.Thread(target=run_download, daemon=True).start()
 
+    url_input = TextField(label=translate(translations, 'ui.url_input', 'URL'), expand=True, on_submit=download)
+    paste_btn = IconButton(icon=Icons.PASTE, tooltip=translate(translations, 'ui.paste_btn', '貼り付け'), on_click=paste_url)
+
+    def set_language(lang_code: str):
+        nonlocal current_lang
+        current_lang = lang_code
+        apply_language_to_ui()
+        save_config()
+
+    # 言語メニュー（国旗と表示名を使用）
+    def build_lang_menu_items():
+        items = []
+        for code, name, flag in list_available_languages():
+            label = f"{flag} {name}" if flag else name
+            # on_click の遅延評価に注意してデフォルト引数で束縛
+            items.append(PopupMenuItem(text=label, on_click=(lambda _e, c=code: set_language(c))))
+        return items
+
+    lang_menu = PopupMenuButton(
+        icon=Icons.LANGUAGE,
+        tooltip=translate(translations, 'ui.language', 'Language'),
+        items=build_lang_menu_items()
+    )
     app_title = Row([
-        Text("YTMDOWN",color=Colors.BLACK,size=24,weight=FontWeight.BOLD),
-        Text(f"v{VERSION}",color=Colors.BLACK54)
+        Text(translate(translations, 'ui.app_title', 'YTMDOWN'),color=Colors.BLACK,size=24,weight=FontWeight.BOLD),
+        Text(f"v{VERSION}",color=Colors.BLACK54),
+        lang_menu
     ])
-    url_input = TextField(label="URL", expand=True, on_submit=download)
-    paste_btn = IconButton(icon=Icons.PASTE, on_click=paste_url)
     cookie_from = Dropdown(
         options=[
             dropdown.Option(key="none", text="None"),
@@ -338,14 +439,14 @@ def main(page:Page):
             dropdown.Option(key="chrome", text="Chrome"),
             dropdown.Option(key="file", text="cookies.txt")
         ],
-        label="cookieの取得元",
+        label=translate(translations, 'ui.cookie_from', 'cookieの取得元'),
         on_change=cookie,
         value="none",
         expand=True
     )
-    cookie_file = TextField(label="cookies.txtのパス", expand=True, visible=False)
+    cookie_file = TextField(label=translate(translations, 'ui.cookie_file', 'cookies.txtのパス'), expand=True, visible=False)
     cookie_select = TextButton(
-        text="選択", 
+        text=translate(translations, 'ui.cookie_select', '選択'), 
         visible=False,
         on_click=lambda _: sel_cookie_dialog.pick_files(allow_multiple=False, allowed_extensions=["txt"])
     )
@@ -356,16 +457,16 @@ def main(page:Page):
             dropdown.Option(key="m4a", text="m4a"),
             dropdown.Option(key="flac", text="flac")
         ],
-        label="フォーマット",
+        label=translate(translations, 'ui.format', 'フォーマット'),
         value="mp3",
         on_change=change,
         expand=True
     )
-    output_path = TextField(label="保存先", value=os.path.normcase(os.path.expanduser("~")), expand=True)
-    output_select = TextButton(text="選択", on_click=lambda e: sel_path_dialog.get_directory_path(dialog_title="保存先を選択"))
-    set_album = Checkbox(label="アルバムアーティストを設定", on_change=change)
+    output_path = TextField(label=translate(translations, 'ui.output_path', '保存先'), value=os.path.normcase(os.path.expanduser("~")), expand=True)
+    output_select = TextButton(text=translate(translations, 'ui.output_select', '選択'), on_click=lambda e: sel_path_dialog.get_directory_path(dialog_title=translate(translations, 'ui.select_output_dialog', '保存先を選択')))
+    set_album = Checkbox(label=translate(translations, 'ui.set_album', 'アルバムアーティストを設定'), on_change=change)
     progress_bar = ProgressBar(value=0,border_radius=border_radius.all(10))
-    title_text = TextField(read_only=True, label="タイトル")
+    title_text = TextField(read_only=True, label=translate(translations, 'ui.title', 'タイトル'))
     log = Column(
         controls=[],
         scroll=ScrollMode.AUTO,
@@ -375,7 +476,31 @@ def main(page:Page):
         spacing=2,
         expand=True
     )
-    dl_btn = ElevatedButton(text="ダウンロード", icon=Icons.DOWNLOAD, on_click=download, width=200)  # ボタンサイズ調整
+    dl_btn = ElevatedButton(text=translate(translations, 'ui.download', 'ダウンロード'), icon=Icons.DOWNLOAD, on_click=download, width=200)  # ボタンサイズ調整
+
+    def apply_language_to_ui():
+        """現在の言語に基づき UI テキストを更新"""
+        nonlocal translations
+        translations = load_translations(current_lang)
+        page.title = f"{translate(translations, 'ui.app_title', 'YTMDOWN')} - version{VERSION}"
+        app_title.controls[0].value = translate(translations, 'ui.app_title', 'YTMDOWN')
+        url_input.label = translate(translations, 'ui.url_input', 'URL')
+        paste_btn.tooltip = translate(translations, 'ui.paste_btn', '貼り付け')
+        lang_menu.tooltip = translate(translations, 'ui.language', 'Language')
+        # メニュー項目を最新化
+        lang_menu.items = build_lang_menu_items()
+        cookie_from.label = translate(translations, 'ui.cookie_from', 'cookieの取得元')
+        cookie_file.label = translate(translations, 'ui.cookie_file', 'cookies.txtのパス')
+        cookie_select.text = translate(translations, 'ui.cookie_select', '選択')
+        format_dropdown.label = translate(translations, 'ui.format', 'フォーマット')
+        output_path.label = translate(translations, 'ui.output_path', '保存先')
+        output_select.text = translate(translations, 'ui.output_select', '選択')
+        set_album.label = translate(translations, 'ui.set_album', 'アルバムアーティストを設定')
+        title_text.label = translate(translations, 'ui.title', 'タイトル')
+        right_panel.content.controls[0].value = translate(translations, 'ui.log', 'ログ')
+        dl_btn.text = translate(translations, 'ui.download', 'ダウンロード')
+        page.update()
+
 
     # 左パネル: 操作コントロール
     left_panel = Container(
@@ -384,7 +509,7 @@ def main(page:Page):
                 app_title,
                 Row([url_input, paste_btn], alignment=MainAxisAlignment.SPACE_BETWEEN),
                 Row([output_path, output_select], alignment=MainAxisAlignment.SPACE_BETWEEN),
-                Row([cookie_from,format_dropdown]),
+                Row([cookie_from, format_dropdown]),
                 Row([cookie_file, cookie_select], alignment=MainAxisAlignment.SPACE_BETWEEN),
                 set_album,
                 title_text,
@@ -403,7 +528,7 @@ def main(page:Page):
     right_panel = Container(
         content=Column(
             controls=[
-                Text("ログ", size=16, weight=FontWeight.BOLD),  # タイトル追加
+                Text(translate(translations, 'ui.log', 'ログ'), size=16, weight=FontWeight.BOLD),  # タイトル追加
                 log
             ]
         ),
@@ -424,6 +549,11 @@ def main(page:Page):
     )
 
     load_config()
+    # 設定で不在の言語が指定されていたらデフォルトにフォールバック
+    available_codes = {code for code, _name, _flag in list_available_languages()}
+    if current_lang not in available_codes:
+        current_lang = DEFAULT_LANG
+    apply_language_to_ui()
 
 if __name__ == "__main__":
     app(target=main)

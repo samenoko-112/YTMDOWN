@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "name": "fr_fr",
+    "display_name": "Français",
+    "flag": "fr",
+    "author": "samenoko-112"
+  },
+  "ui": {
+    "app_title": "YTMDOWN",
+    "url_input": "URL",
+    "paste_btn": "Coller",
+    "cookie_from": "Source des cookies",
+    "cookie_file": "Chemin vers cookies.txt",
+    "cookie_select": "Sélectionner",
+    "output_path": "Dossier de sortie",
+    "output_select": "Sélectionner",
+    "set_album": "Définir l’artiste de l’album",
+    "format": "Format",
+    "title": "Titre",
+    "log": "Journal",
+    "download": "Télécharger",
+    "select_output_dialog": "Sélectionner le dossier de sortie"
+  },
+  "msg": {
+    "start_download": "Démarrage du téléchargement...",
+    "album_artist": "Artiste de l’album",
+    "download_ok": "Téléchargement réussi"
+  },
+  "error": {
+    "metadata": "Erreur de récupération des métadonnées"
+  },
+  "notify": {
+    "error_title": "Une erreur s'est produite",
+    "error_body": "Une erreur s'est produite pendant le téléchargement",
+    "done_title": "Téléchargement terminé",
+    "done_body_tail": " a été téléchargé"
+  }
+}
+

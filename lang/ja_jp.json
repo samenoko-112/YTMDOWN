@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "name": "ja_jp",
+    "display_name": "日本語",
+    "flag": "jp",
+    "author": "samenoko-112"
+  },
+  "ui": {
+    "app_title": "YTMDOWN",
+    "url_input": "URL",
+    "paste_btn": "貼り付け",
+    "cookie_from": "Cookieの取得元",
+    "cookie_file": "cookies.txtのパス",
+    "cookie_select": "選択",
+    "output_path": "保存先",
+    "output_select": "選択",
+    "set_album": "アルバムアーティストを設定",
+    "format": "フォーマット",
+    "title": "タイトル",
+    "log": "ログ",
+    "download": "ダウンロード",
+    "select_output_dialog": "保存先を選択"
+  },
+  "msg": {
+    "start_download": "ダウンロードを開始します...",
+    "album_artist": "アルバムアーティスト",
+    "download_ok": "正常にダウンロードできました"
+  },
+  "error": {
+    "metadata": "メタデータ取得エラー"
+  },
+  "notify": {
+    "error_title": "エラーが発生しました",
+    "error_body": "ダウンロード中にエラーが発生しました",
+    "done_title": "ダウンロード完了",
+    "done_body_tail": "をダウンロードしました"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "name": "ko_kr",
+    "display_name": "한국어",
+    "flag": "kr",
+    "author": "samenoko-112"
+  },
+  "ui": {
+    "app_title": "YTMDOWN",
+    "url_input": "URL",
+    "paste_btn": "붙여넣기",
+    "cookie_from": "쿠키 소스",
+    "cookie_file": "cookies.txt 경로",
+    "cookie_select": "선택",
+    "output_path": "저장 경로",
+    "output_select": "선택",
+    "set_album": "앨범 아티스트 설정",
+    "format": "형식",
+    "title": "제목",
+    "log": "로그",
+    "download": "다운로드",
+    "select_output_dialog": "저장 경로 선택"
+  },
+  "msg": {
+    "start_download": "다운로드를 시작합니다...",
+    "album_artist": "앨범 아티스트",
+    "download_ok": "정상적으로 다운로드되었습니다"
+  },
+  "error": {
+    "metadata": "메타데이터 가져오기 오류"
+  },
+  "notify": {
+    "error_title": "오류가 발생했습니다",
+    "error_body": "다운로드 중 오류가 발생했습니다",
+    "done_title": "다운로드 완료",
+    "done_body_tail": "를 다운로드했습니다"
+  }
+}
+

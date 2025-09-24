@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "name": "ru_ru",
+    "display_name": "Русский",
+    "flag": "ru",
+    "author": "samenoko-112"
+  },
+  "ui": {
+    "app_title": "YTMDOWN",
+    "url_input": "URL",
+    "paste_btn": "Вставить",
+    "cookie_from": "Источник cookie",
+    "cookie_file": "Путь к cookies.txt",
+    "cookie_select": "Выбрать",
+    "output_path": "Каталог сохранения",
+    "output_select": "Выбрать",
+    "set_album": "Установить исполнителя альбома",
+    "format": "Формат",
+    "title": "Название",
+    "log": "Журнал",
+    "download": "Скачать",
+    "select_output_dialog": "Выбрать каталог сохранения"
+  },
+  "msg": {
+    "start_download": "Начало загрузки...",
+    "album_artist": "Исполнитель альбома",
+    "download_ok": "Успешно загружено"
+  },
+  "error": {
+    "metadata": "Ошибка получения метаданных"
+  },
+  "notify": {
+    "error_title": "Произошла ошибка",
+    "error_body": "Произошла ошибка во время загрузки",
+    "done_title": "Загрузка завершена",
+    "done_body_tail": " загружено"
+  }
+}
+

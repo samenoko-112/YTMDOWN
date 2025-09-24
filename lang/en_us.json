@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "name": "en_us",
+    "display_name": "English (US)",
+    "flag": "us",
+    "author": "samenoko-112"
+  },
+  "ui": {
+    "app_title": "YTMDOWN",
+    "url_input": "URL",
+    "paste_btn": "Paste",
+    "cookie_from": "Cookie source",
+    "cookie_file": "Path to cookies.txt",
+    "cookie_select": "Select",
+    "output_path": "Output directory",
+    "output_select": "Select",
+    "set_album": "Set album artist",
+    "format": "Format",
+    "title": "Title",
+    "log": "Log",
+    "download": "Download",
+    "select_output_dialog": "Select output directory"
+  },
+  "msg": {
+    "start_download": "Starting download...",
+    "album_artist": "Album artist",
+    "download_ok": "Downloaded successfully"
+  },
+  "error": {
+    "metadata": "Metadata fetch error"
+  },
+  "notify": {
+    "error_title": "An error occurred",
+    "error_body": "An error occurred during download",
+    "done_title": "Download complete",
+    "done_body_tail": " has been downloaded"
+  }
+}
+

@@ -11,6 +11,12 @@ import requests
 from PIL import Image, UnidentifiedImageError
 import io
 import tempfile
+import sys
+
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 # プラットフォームに応じた通知システムのインポート
 if platform.system() == "Windows":
@@ -35,7 +41,7 @@ def load_translations(lang_code: str):
     """lang/ 配下の JSON を読み取って辞書を返す。失敗時は空辞書。
     lang ファイルが壊れていてもアプリが動作するように安全に読み込む。
     """
-    lang_path = os.path.join(LANG_DIR, f"{lang_code}.json")
+    lang_path = resource_path(os.path.join(LANG_DIR, f"{lang_code}.json"))
     if not os.path.exists(lang_path):
         return {}
     try:
@@ -77,7 +83,8 @@ def list_available_languages():
     """lang ディレクトリの *.json を走査し、(code, display_name, flag) のリストを返す"""
     langs = []
     try:
-        for filename in os.listdir(LANG_DIR):
+        lang_dir_path = resource_path(LANG_DIR)
+        for filename in os.listdir(lang_dir_path):
             if not filename.endswith(".json"):
                 continue
             code = filename[:-5]

@@ -1,6 +1,9 @@
 name: Build for Windows
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       version:

@@ -30,7 +30,7 @@ else:
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.30"
+VERSION = "1.31"
 
 # i18n 設定
 LANG_DIR = "./lang"

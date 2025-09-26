@@ -8,8 +8,6 @@ import datetime
 import json
 import platform
 import requests
-from PIL import Image, UnidentifiedImageError
-import io
 import tempfile
 import sys
 
@@ -30,7 +28,7 @@ else:
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.31"
+VERSION = "1.32"
 
 # i18n 設定
 LANG_DIR = "./lang"
@@ -206,6 +204,7 @@ def main(page:Page):
     def download(e):
         progress_bar.value = None
         log.controls.append(Text(translate(translations, 'msg.start_download', "ダウンロードを開始します..."), color=Colors.BLUE))
+        log.scroll_to(offset=-1)
         dl_btn.disabled = True
         page.update()
         
@@ -213,16 +212,21 @@ def main(page:Page):
         metadata_command = [
             "yt-dlp",
             url_input.value,
-            "--dump-json",
+            "--skip-download",
             "--playlist-items", "1",
+            "--extractor-args", "youtube:player_client=web",
+            "--no-check-formats",
             "--no-warnings",
-            "--add-header", "Accept-Language:ja-JP"
+            "--add-header", "Accept-Language:ja-JP",
+            "--print", "%(id)s\t%(title)s\t%(thumbnail)s\t%(artist)s\t%(album)s\t%(uploader)s\t%(channel)s",
         ]
         
-        if cookie_from.value == "firefox":
-            metadata_command.extend(["--cookies-from-browser", "firefox"])
+        if cookie_from.value == "none":
+            pass
         elif cookie_from.value == "file":
             metadata_command.extend(["--cookies", cookie_file.value])
+        else:
+            metadata_command.extend(["--cookies-from-browser", cookie_from.value])
         
         # メタデータ取得プロセスを実行
         try:
@@ -233,67 +237,51 @@ def main(page:Page):
                 text=True,
                 check=True
             )
-            
-            # JSONとしてパース
-            import json
-            metadata = json.loads(metadata_process.stdout)
-            # 諸々の情報をおいておく
+
+            # タブ区切りで分解
+            out = metadata_process.stdout.strip().split("\t")
+            video_id, title, thumbnail_url, artist, album, uploader, channel = (out + [""] * 7)[:7]
+
+            # サムネイル処理（JPEGのまま保存）
             thumbnail_image = None
             tmp_path = None
-            album_name = None
-            if 'thumbnail' in metadata:
-                thumbnail_url = metadata['thumbnail']
+            if thumbnail_url:
                 try:
-                    response = requests.get(thumbnail_url, timeout=10)
+                    response = requests.get(thumbnail_url, timeout=5)
                     response.raise_for_status()
-                    image_bytes = response.content
-                    image_stream = io.BytesIO(image_bytes)
-                    with Image.open(image_stream) as img:
-                        png_stream = io.BytesIO()
-                        img.save(png_stream, format="PNG")
-                        png_bytes = png_stream.getvalue()
-                    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
-                        temp_file.write(png_bytes)
+                    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
+                        temp_file.write(response.content)
                         tmp_path = temp_file.name
-                        # print(f"{tmp_path}")
-                except requests.exceptions.RequestException as e:
-                    pass
-                except UnidentifiedImageError:
-                    pass
-                except Exception as e:
+                    thumbnail_image = {"src": tmp_path, "placement": "hero"}
+                except requests.RequestException:
                     pass
 
-                if tmp_path:
-                    thumbnail_image = {
-                        'src': tmp_path,
-                        'placement': 'hero'
-                    }
-            if 'album' in metadata:
-                album_name = metadata['album']
-                
-            # artists.0の値を取得（存在する場合）
+            # アルバム名
+            album_name = album if album else None
+
+            # アルバムアーティスト判定（優先順位つき）
             album_artist = None
-            if 'artist' in metadata:
-                album_artist = metadata['artist']
-            elif 'artists' in metadata and len(metadata['artists']) > 0:
-                album_artist = metadata['artists'][0]
-            elif 'uploader' in metadata:
-                uploader = metadata['uploader']
-                if uploader.endswith(" - Topic"):
-                    album_artist = uploader.removesuffix(" - Topic")
-                else:
-                    album_artist = uploader
-            
-            elif 'channel' in metadata:
-                album_artist = metadata['channel']
-                
-            log.controls.append(Text(f"{translate(translations, 'msg.album_artist', 'アルバムアーティスト')}: {album_artist}", color=Colors.GREEN))
+            if artist:
+                album_artist = artist
+            elif uploader:
+                album_artist = uploader.removesuffix(" - Topic") if uploader.endswith(" - Topic") else uploader
+            elif channel:
+                album_artist = channel
+
+            log.controls.append(Text(
+                f"{translate(translations, 'msg.album_artist', 'アルバムアーティスト')}: {album_artist}",
+                color=Colors.GREEN
+            ))
+            log.scroll_to(offset=-1)
             page.update()
-                
+
         except Exception as ex:
-                log.controls.append(Text(f"{translate(translations, 'error.metadata', 'メタデータ取得エラー')}: {str(ex)}", color=Colors.RED))
-                page.update()
-                album_artist = None
+            log.controls.append(Text(
+                f"{translate(translations, 'error.metadata', 'メタデータ取得エラー')}: {str(ex)}",
+                color=Colors.RED
+            ))
+            page.update()
+            album_artist = None
         
         # 通常のダウンロードコマンド
         progress_template = "Downloading: %(progress._percent_str)s | Speed: %(progress._speed_str)s | ETA: %(progress._eta_str)s | Title: %(info.title)s"
@@ -312,6 +300,8 @@ def main(page:Page):
             "--parse-metadata", "%(playlist_index)s/%(n_entries)s:%(track_number)s",
             "--parse-metadata", "%(upload_date).4s:%(meta_date)s",
             "--no-warnings",
+            "--extractor-args", "youtube:player_client=tv",
+            "--format-sort", "tbr",
         ]
         
         command.extend(["-f","bestaudio/best"])
@@ -330,12 +320,12 @@ def main(page:Page):
             # 取得できなかった場合は元のコマンドに戻す
             command.extend(["--parse-metadata", "%(artists.0)s:%(meta_album_artist)s"])
         
-        if cookie_from.value == "firefox":
-            command.extend(["--cookies-from-browser", "firefox"])
-        elif cookie_from.value == "chrome":
-            command.extend(["--cookies-from-browser", "chrome"])
+        if cookie_from.value == "none":
+            pass
         elif cookie_from.value == "file":
             command.extend(["--cookies", cookie_file.value])
+        else:
+            command.extend(["--cookies-from-browser", cookie_from.value])
 
         def run_download():
             nonlocal download_process
@@ -402,6 +392,8 @@ def main(page:Page):
                     image=thumbnail_image
                 )
 
+            page.update()
+
             
             try:
                 if 'tmp_path' in locals() and tmp_path:
@@ -444,7 +436,8 @@ def main(page:Page):
             dropdown.Option(key="none", text="None"),
             dropdown.Option(key="firefox", text="Firefox"),
             dropdown.Option(key="chrome", text="Chrome"),
-            dropdown.Option(key="file", text="cookies.txt")
+            dropdown.Option(key="brave", text="Brave"),
+            dropdown.Option(key="file", text="cookies.txt"),
         ],
         label=translate(translations, 'ui.cookie_from', 'cookieの取得元'),
         on_change=cookie,

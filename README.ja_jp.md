@@ -1,0 +1,67 @@
+# YTMDOWN
+言語: [日本語](README.ja_jp.md) | [English (US)](README.en_us.md) | [简体中文](README.zh_cn.md) | [繁體中文](README.zh_tw.md) | [한국어](README.ko_kr.md) | [Français](README.fr_fr.md) | [Deutsch](README.de_de.md) | [Español](README.es_es.md) | [Português (Brasil)](README.pt_br.md) | [Русский](README.ru_ru.md)
+YouTubeMusicからアルバムを良い感じにダウンロードするソフトウェア
+## About this Software
+[samenoko-112/yt-dlpGUI](https://github.com/samenoko-112/yt-dlpGUI)の機能を削り、  
+YouTubeMusicのダウンロードに特化させたソフトウェアです。
+
+> [!NOTE]
+> 普通に動画をダウンロードしたいのであればsamenoko-112/NeCdの使用をおすすめします。
+
+## 特徴
+### シンプルな設定
+設定項目はURL,保存先,Cookie(任意),フォーマットだけ!!  
+その他のオプションは1個だけです。
+
+### 設定を保存
+保存先,Cookie,フォーマットの選択をファイルに保存して次回起動時に読み込みます。  
+いちいち設定し直す手間を省けます。
+
+### メタデータ
+自動では埋め込まれないトラック番号やアルバムアーティストを設定します。  
+**アルバムアーティストを設定**オプションを有効にすれば一番最初のトラックのアーティストをアルバムアーティストとして設定します。
+
+### アルバムアート
+アルバムアートを1:1にクロップして埋め込みます。  
+一部ファイルへの埋め込みにはmutagenが必要です。
+
+## スクショ
+![](img/2025-05-05-23-52-10.png)
+
+![通知](img/2025-05-05-23-52-38.png)
+
+## 動作環境
+| OS | Version | .py | Binary |
+| -- | --- | - | - |
+| Windows10 Pro | 19045.5737 | 🆗 | 🆗 |
+| Ubuntu 24.04 | LTS | 🆗 | 🆗 |
+| macOS | 15 | 🆗 | 🆗 |
+
+※ 実行ファイルの配布はwindows向けのみ。
+
+## 必須
+- **Python**  
+    3.10以上
+- **yt-dlp**  
+    ```shell
+    pip install yt-dlp
+    ```
+- **ffmpeg**
+- **mutagen**  
+    一部ファイルへのメタデータ埋め込みの際に必要
+    ```shell
+    pip install mutagen
+    ```
+## トラブルシューティング
+### ウイルス判定をされます
+ビルド時にブートローダーを再ビルドするなど対策はしていますが一部ソフトでは誤検出されるようです。  
+実行ファイルを許可リストに入れていただくかこのリポジトリをクローンしてご自身でビルドしてください。
+
+### エラーが出ます
+ひとまずyt-dlpを更新してみましょう。このツールはyt-dlpを内蔵していません。  
+```shell
+pip install -U yt-dlp
+```
+で更新できます。コレで解決すれば簡単です。  
+ダウンロード時のログはlogsフォルダに保存されます。.txt形式なのでメモ帳で開けます。  
+エラーログをググるとかAIに聞いてみて下さい。

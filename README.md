@@ -1,67 +1,68 @@
 # YTMDOWN
-言語: [日本語](README.md) | [English (US)](README.en_us.md) | [简体中文](README.zh_cn.md) | [繁體中文](README.zh_tw.md) | [한국어](README.ko_kr.md) | [Français](README.fr_fr.md) | [Deutsch](README.de_de.md) | [Español](README.es_es.md) | [Português (Brasil)](README.pt_br.md) | [Русский](README.ru_ru.md)
-YouTubeMusicからアルバムを良い感じにダウンロードするソフトウェア
-## About this Software
-[samenoko-112/yt-dlpGUI](https://github.com/samenoko-112/yt-dlpGUI)の機能を削り、  
-YouTubeMusicのダウンロードに特化させたソフトウェアです。
+Idiomas: [日本語](README.ja_jp.md) | [English (US)](README.en_us.md) | [简体中文](README.zh_cn.md) | [繁體中文](README.zh_tw.md) | [한국어](README.ko_kr.md) | [Français](README.fr_fr.md) | [Deutsch](README.de_de.md) | [Español](README.es_es.md) | [Português (Brasil)](README.pt_br.md) | [Русский](README.ru_ru.md)
+Software para descargar álbumes de YouTube Music de forma ordenada.
+
+## Acerca del software
+Esta aplicación es una versión simplificada de [samenoko-112/yt-dlpGUI](https://github.com/samenoko-112/yt-dlpGUI),
+especializada en descargas de YouTube Music.
 
 > [!NOTE]
-> 普通に動画をダウンロードしたいのであればsamenoko-112/NeCdの使用をおすすめします。
+> Si desea descargar videos normales, use samenoko-112/NeCd.
 
-## 特徴
-### シンプルな設定
-設定項目はURL,保存先,Cookie(任意),フォーマットだけ!!  
-その他のオプションは1個だけです。
+## Características
+### Configuración sencilla
+Solo URL, carpeta de salida, cookies (opcional) y formato.
+Hay solo una opción adicional.
 
-### 設定を保存
-保存先,Cookie,フォーマットの選択をファイルに保存して次回起動時に読み込みます。  
-いちいち設定し直す手間を省けます。
+### Guardar configuración
+La carpeta de salida, las cookies y el formato se guardan y se cargan al iniciar,
+para no tener que configurarlo cada vez.
 
-### メタデータ
-自動では埋め込まれないトラック番号やアルバムアーティストを設定します。  
-**アルバムアーティストを設定**オプションを有効にすれば一番最初のトラックのアーティストをアルバムアーティストとして設定します。
+### Metadatos
+Establece el número de pista y el artista del álbum cuando no se integran automáticamente.
+Si activa "Establecer artista del álbum", el artista de la primera pista se usará como artista del álbum.
 
-### アルバムアート
-アルバムアートを1:1にクロップして埋め込みます。  
-一部ファイルへの埋め込みにはmutagenが必要です。
+### Carátula del álbum
+La carátula se recorta a 1:1 y se integra.
+Para algunos formatos, se requiere mutagen.
 
-## スクショ
+## Capturas
 ![](img/2025-05-05-23-52-10.png)
 
-![通知](img/2025-05-05-23-52-38.png)
+![Notificación](img/2025-05-05-23-52-38.png)
 
-## 動作環境
-| OS | Version | .py | Binary |
+## Entornos
+| OS | Versión | .py | Binario |
 | -- | --- | - | - |
-| Windows10 Pro | 19045.5737 | 🆗 | 🆗 |
-| Ubuntu 24.04 | LTS | 🆗 | 🆗 |
-| macOS | 15 | 🆗 | 🆗 |
+| Windows10 Pro | 19045.5737 | OK | OK |
+| Ubuntu 24.04 | LTS | OK | OK |
+| macOS | 15 | OK | OK |
 
-※ 実行ファイルの配布はwindows向けのみ。
+Nota: Los ejecutables precompilados solo se distribuyen para Windows.
 
-## 必須
-- **Python**  
-    3.10以上
-- **yt-dlp**  
+## Requisitos
+- Python 3.10+
+- yt-dlp
     ```shell
     pip install yt-dlp
     ```
-- **ffmpeg**
-- **mutagen**  
-    一部ファイルへのメタデータ埋め込みの際に必要
+- ffmpeg
+- mutagen (necesario para integrar metadatos en algunos archivos)
     ```shell
     pip install mutagen
     ```
-## トラブルシューティング
-### ウイルス判定をされます
-ビルド時にブートローダーを再ビルドするなど対策はしていますが一部ソフトでは誤検出されるようです。  
-実行ファイルを許可リストに入れていただくかこのリポジトリをクローンしてご自身でビルドしてください。
 
-### エラーが出ます
-ひとまずyt-dlpを更新してみましょう。このツールはyt-dlpを内蔵していません。  
+## Solución de problemas
+### Marcado como virus
+A pesar de reconstruir el cargador de arranque durante la compilación, algunos programas pueden detectarlo por error.
+Agregue el ejecutable a la lista de permitidos o clone este repositorio y compílelo usted mismo.
+
+### Aparecen errores
+Primero, actualice yt-dlp. Esta herramienta no incluye yt-dlp.
 ```shell
 pip install -U yt-dlp
 ```
-で更新できます。コレで解決すれば簡単です。  
-ダウンロード時のログはlogsフォルダに保存されます。.txt形式なのでメモ帳で開けます。  
-エラーログをググるとかAIに聞いてみて下さい。
+Si eso lo soluciona, perfecto. Los registros de descarga se guardan en la carpeta logs en formato .txt,
+puede abrirlos con el Bloc de notas. Busque el mensaje de error o pregunte a una IA.
+
+

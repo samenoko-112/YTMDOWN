@@ -4,3 +4,4 @@
 *.spec
 config.json
 /venv
+RELEASENOTE.txt

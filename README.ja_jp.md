@@ -1,5 +1,5 @@
 # YTMDOWN
-言語: [日本語](README.ja_jp.md) | [English (US)](README.en_us.md) | [简体中文](README.zh_cn.md) | [繁體中文](README.zh_tw.md) | [한국어](README.ko_kr.md) | [Français](README.fr_fr.md) | [Deutsch](README.de_de.md) | [Español](README.es_es.md) | [Português (Brasil)](README.pt_br.md) | [Русский](README.ru_ru.md)
+言語: [日本語](README.ja_jp.md) | [English (US)](README.md) | [简体中文](README.zh_cn.md) | [繁體中文](README.zh_tw.md) | [한국어](README.ko_kr.md) | [Français](README.fr_fr.md) | [Deutsch](README.de_de.md) | [Español](README.es_es.md) | [Português (Brasil)](README.pt_br.md) | [Русский](README.ru_ru.md)
 YouTubeMusicからアルバムを良い感じにダウンロードするソフトウェア
 ## About this Software
 [samenoko-112/yt-dlpGUI](https://github.com/samenoko-112/yt-dlpGUI)の機能を削り、  

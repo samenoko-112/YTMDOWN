@@ -1,8 +1,6 @@
 !include "MUI2.nsh"
 
-!define NSIS_UNICODE
-!define NSIS_UTF8
-!define NSIS_UTF8_STRINGS
+Unicode true
 
 RequestExecutionLevel user
 
@@ -18,7 +16,6 @@ RequestExecutionLevel user
 OutFile "build\${APP_NAME}-${APP_VERSION}-setup.exe"
 InstallDir ${INSTALL_DIR}
 
-Var StartMenuFolder
 Var AddDesktopShortcut
 
 !insertmacro MUI_PAGE_WELCOME

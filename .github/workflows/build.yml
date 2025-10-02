@@ -119,11 +119,11 @@ jobs:
       run: |
         echo "アーティファクトの内容を確認:"
         ls -la ./artifacts/
-        if [ ! -f "./artifacts/YTMDOWN-${{ env.VERSION }}-windows.zip" ]; then
+        if [ ! -f "./artifacts/dist/YTMDOWN-${{ env.VERSION }}-windows.zip" ]; then
           echo "エラー: ZIP ファイルが見つかりません"
           exit 1
         fi
-        if [ ! -f "./artifacts/YTMDOWN-${{ env.VERSION }}-setup.exe" ]; then
+        if [ ! -f "./artifacts/build/YTMDOWN-${{ env.VERSION }}-setup.exe" ]; then
           echo "エラー: インストーラーファイルが見つかりません"
           exit 1
         fi
@@ -138,8 +138,8 @@ jobs:
         draft: true
         prerelease: false
         files: |
-          ./artifacts/YTMDOWN-${{ env.VERSION }}-windows.zip
-          ./artifacts/YTMDOWN-${{ env.VERSION }}-setup.exe
+          ./artifacts/dist/YTMDOWN-${{ env.VERSION }}-windows.zip
+          ./artifacts/build/YTMDOWN-${{ env.VERSION }}-setup.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     

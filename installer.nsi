@@ -1,5 +1,10 @@
 !include "MUI2.nsh"
 
+; エンコーディング設定
+!define NSIS_UNICODE
+!define NSIS_UTF8
+!define NSIS_UTF8_STRINGS
+
 RequestExecutionLevel user
 
 !ifndef APP_VERSION
@@ -36,7 +41,7 @@ Function SelectShortcutsPage
     Abort
   ${EndIf}
 
-  ${NSD_CreateCheckbox} 0 0 100% 12u "デスクトップにショートカットを作成する"
+  ${NSD_CreateCheckbox} 0 0 100% 12u "Create desktop shortcut"
   Pop $1
   ${NSD_Check} $1
 

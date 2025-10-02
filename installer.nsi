@@ -1,6 +1,5 @@
 !include "MUI2.nsh"
 
-; エンコーディング設定
 !define NSIS_UNICODE
 !define NSIS_UTF8
 !define NSIS_UTF8_STRINGS

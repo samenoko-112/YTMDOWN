@@ -21,7 +21,6 @@ jobs:
     env:
       VERSION: ${{ github.event.inputs.version || github.ref_name }}
     
-    
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
@@ -58,18 +57,26 @@ jobs:
 
     - name: 🗜️ Create ZIP Archive
       run: |
-        if (!(Test-Path -Path "dist/YTMDOWN")) {
-          Write-Error "dist/YTMDOWN フォルダが存在しません。ビルドが失敗している可能性があります。"
-          exit 1
-        }
         Compress-Archive -Path dist/YTMDOWN/* -DestinationPath dist/YTMDOWN-${{ env.VERSION }}-windows.zip -Force
         
-    - name: 📤 Upload Artifacts (ZIP)
+    - name: 💿 Install NSIS
+      run: choco install nsis -y
+
+    - name: 📦 Build NSIS Installer
+      run: |
+        makensis -DAPP_VERSION=${{ env.VERSION }} installer.nsi
+        if (!(Test-Path -Path "build/YTMDOWN-${{ env.VERSION }}-setup.exe")) {
+          Write-Error "NSIS インストーラーが生成されませんでした。installer.nsi を確認してください。"
+          exit 1
+        }
+
+    - name: 📤 Upload Artifacts (ZIP + Installer)
       uses: actions/upload-artifact@v4
       with:
         name: windows-build
         path: |
           dist/YTMDOWN-${{ env.VERSION }}-windows.zip
+          build/YTMDOWN-${{ env.VERSION }}-setup.exe
 
   create-release:
     needs: [build-windows]
@@ -93,6 +100,7 @@ jobs:
         prerelease: false
         files: |
           YTMDOWN-${{ env.VERSION }}-windows.zip
+          YTMDOWN-${{ env.VERSION }}-setup.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     

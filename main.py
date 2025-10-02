@@ -427,8 +427,8 @@ def main(page:Page):
         items=build_lang_menu_items()
     )
     app_title = Row([
-        Text(translate(translations, 'ui.app_title', 'YTMDOWN'),color=Colors.BLACK,size=24,weight=FontWeight.BOLD),
-        Text(f"v{VERSION}",color=Colors.BLACK54),
+        Text(translate(translations, 'ui.app_title', 'YTMDOWN'), size=24, weight=FontWeight.BOLD),
+        Text(f"v{VERSION}"),
         lang_menu
     ])
     cookie_from = Dropdown(
@@ -533,7 +533,7 @@ def main(page:Page):
             ]
         ),
         expand=True,
-        border=border.all(1, "#DDDDDD"),
+        border=border.all(1),
         border_radius=border_radius.all(10),
         padding=15
     )

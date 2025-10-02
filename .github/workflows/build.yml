@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+      - 'test-*'
   workflow_dispatch:
     inputs:
       version:
@@ -84,7 +85,8 @@ jobs:
         if (!(Test-Path -Path "build")) {
           New-Item -ItemType Directory -Path "build" -Force
         }
-        makensis -DAPP_VERSION=${{ env.VERSION }} installer.nsi
+        Write-Host "NSIS に渡すバージョン: '${{ env.VERSION }}'"
+        makensis -DAPP_VERSION="${{ env.VERSION }}" installer.nsi
         if (!(Test-Path -Path "build/YTMDOWN-${{ env.VERSION }}-setup.exe")) {
           Write-Error "NSIS インストーラーが生成されませんでした。installer.nsi を確認してください。"
           exit 1

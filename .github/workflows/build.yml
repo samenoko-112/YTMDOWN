@@ -60,7 +60,10 @@ jobs:
         Compress-Archive -Path dist/YTMDOWN/* -DestinationPath dist/YTMDOWN-${{ env.VERSION }}-windows.zip -Force
         
     - name: 💿 Install NSIS
-      run: choco install nsis -y
+      run: |
+        choco install nsis -y
+        echo "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "C:\Program Files\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: 📦 Build NSIS Installer
       run: |

@@ -28,7 +28,7 @@ else:
 
 os.makedirs("./logs",exist_ok=True)
 CONFIG_FILE = "./config.json"
-VERSION = "1.32"
+VERSION = "1.33"
 
 # i18n 設定
 LANG_DIR = "./lang"
@@ -94,10 +94,10 @@ def list_available_languages():
     langs.sort(key=lambda x: (0 if x[0] == DEFAULT_LANG else 1, x[1].lower()))
     return langs
 
-def show_notification(title, message, image=None):
+def show_notification(title, message, image=None, on_click=None):
     """プラットフォームに応じた通知を表示"""
     if platform.system() == "Windows" and has_windows_toast:
-        toast(title, message, image=image)
+        toast(title, message, image=image, on_click=on_click)
     elif platform.system() == "Darwin":  # macOS
         os.system(f"""
             osascript -e 'display notification "{message}" with title "{title}"'
@@ -160,11 +160,7 @@ def main(page:Page):
     page.on_close = on_window_close
 
     def cookie(e):
-        if cookie_from.value == "firefox":
-            cookie_file.visible = False
-            cookie_select.visible = False
-            page.update()
-        elif cookie_from.value == "file":
+        if cookie_from.value == "file":
             cookie_file.visible = True
             cookie_select.visible = True
             page.update()
@@ -219,6 +215,7 @@ def main(page:Page):
             "--no-warnings",
             "--add-header", "Accept-Language:ja-JP",
             "--print", "%(id)s\t%(title)s\t%(thumbnail)s\t%(artist)s\t%(album)s\t%(uploader)s\t%(channel)s",
+            "--no-mtime"
         ]
         
         if cookie_from.value == "none":
@@ -389,11 +386,11 @@ def main(page:Page):
                 show_notification(
                     translate(translations, 'notify.done_title', 'ダウンロード完了'),
                     f"{album_artist} - {album_name}{translate(translations, 'notify.done_body_tail', 'をダウンロードしました')}",
-                    image=thumbnail_image
+                    image=thumbnail_image,
+                    on_click=os.path.abspath(f"{output_path.value}/{album_name}")
                 )
 
             page.update()
-
             
             try:
                 if 'tmp_path' in locals() and tmp_path:
